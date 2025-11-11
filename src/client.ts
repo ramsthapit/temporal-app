@@ -1,5 +1,5 @@
 import { Connection, Client } from '@temporalio/client';
-import { container_details, example } from './workflows';
+import { container_details, example, pnct_empty_return_workflow } from './workflows';
 import { nanoid } from 'nanoid';
 
 async function run() {
@@ -16,36 +16,37 @@ async function run() {
     // namespace: 'foo.bar', // connects to 'default' namespace if not specified
   });
 
-  const handle = await client.workflow.start(example, {
-    taskQueue: 'hello-world',
-    // type inference works! args: [name: string]
-    args: ['Temporal'],
-    // in practice, use a meaningful business ID, like customerId or transactionId
-    workflowId: 'workflow-' + nanoid(),
-  });
-  console.log(`Started workflow ${handle.workflowId}`);
+  // const handle = await client.workflow.start(example, {
+  //   taskQueue: 'hello-world',
+  //   // type inference works! args: [name: string]
+  //   args: ['Temporal'],
+  //   // in practice, use a meaningful business ID, like customerId or transactionId
+  //   workflowId: 'workflow-' + nanoid(),
+  // });
+  
+  // console.log(`Started workflow ${handle.workflowId}`);
+  // // optional: wait for client result
+  // console.log(await handle.result()); // Hello, Temporal!
 
-  // optional: wait for client result
-  console.log(await handle.result()); // Hello, Temporal!
+
+    const handle = await client.workflow.start(container_details, {
+      taskQueue: 'hello-world',
+      args: ['MSBU7060010'],
+      workflowId: 'container-details-' + nanoid(),
+    });
+    console.log(`Started workflow ${handle.workflowId}`);
+
+
+    const result = await client.workflow.start(pnct_empty_return_workflow, {
+      taskQueue: 'hello-world',
+      args: ['MSBU7060010'],
+      workflowId: 'pnct-empty-return-' + nanoid(),
+    });
+    console.log(`Started workflow ${result.workflowId}`);
 }
 
-async function get_container_details(container_no: string): Promise<string> {
-  const connection = await Connection.connect({ address: 'localhost:7233' });
-  const client = new Client({ connection });
-  const handle = await client.workflow.start(container_details, {
-    taskQueue: 'hello-world',
-    args: [container_no],
-    workflowId: 'container-details-' + nanoid(),
-  });
-  console.log(`Started workflow ${handle.workflowId}`);
-  return await handle.result();
-}
 
-get_container_details('MSBU7060010').catch((err) => {
+run().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-// run().catch((err) => {
-//   console.error(err);
-//   process.exit(1);
-// });

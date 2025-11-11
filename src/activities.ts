@@ -21,3 +21,11 @@ export async function get_container_details(container_no: string) {
     return `Request failed: ${(err as Error).message}`;
   }
 }
+
+export async function pnct_empty_return() {
+  const url = new URL("https://pnct.net/EmptyReturn");
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.text();
+  return data;
+}
