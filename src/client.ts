@@ -1,5 +1,5 @@
 import { Connection, Client } from '@temporalio/client';
-import { example } from './workflows';
+import { container_details, example } from './workflows';
 import { nanoid } from 'nanoid';
 
 async function run() {
@@ -29,7 +29,23 @@ async function run() {
   console.log(await handle.result()); // Hello, Temporal!
 }
 
-run().catch((err) => {
+async function get_container_details(container_no: string): Promise<string> {
+  const connection = await Connection.connect({ address: 'localhost:7233' });
+  const client = new Client({ connection });
+  const handle = await client.workflow.start(container_details, {
+    taskQueue: 'hello-world',
+    args: [container_no],
+    workflowId: 'container-details-' + nanoid(),
+  });
+  console.log(`Started workflow ${handle.workflowId}`);
+  return await handle.result();
+}
+
+get_container_details('MSBU7060010').catch((err) => {
   console.error(err);
   process.exit(1);
 });
+// run().catch((err) => {
+//   console.error(err);
+//   process.exit(1);
+// });
